@@ -5,8 +5,9 @@ const cors = require('cors');
 const superagent = require('superagent');
 
 const pg=require('pg');
+const client = new pg.Client({ connectionString: process.env.DATABASE_URL, ssl: process.env.DEV_MODE ? false : { rejectUnauthorized: false } });
 
-const clinet= new pg.Client(process.env.DATABASE_URL);
+//const clinet= new pg.Client(process.env.DATABASE_URL);
 const server=express();
 const PORT=process.env.PORT || 3000;
 
@@ -14,7 +15,7 @@ const PORT=process.env.PORT || 3000;
 //   console.log(`listening on port ${PORT}`);
 // });
 
-clinet.connect()
+client.connect()
   .then(() => {
     server.listen(PORT, () =>{
       console.log(`listening on ${PORT}`);
@@ -52,7 +53,7 @@ function locationHandler(req,res){
   let SQL = `select * from location  where search_query = $1`;
   let locURL=`https://us1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json`;
 
-  clinet.query(SQL,[cityName])
+  client.query(SQL,[cityName])
     .then(data=>{
       if (data.rowCount>0){
         console.log('we are work in database');
@@ -73,7 +74,7 @@ function locationHandler(req,res){
 
             let SQL = `INSERT INTO location (search_query,formatted_query,latitude,longitude) VALUES ($1,$2,$3,$4) RETURNING *;`;
             let safeValues=[search_query,formatted_query,latitude,longitude];
-            clinet.query(SQL,safeValues)
+            client.query(SQL,safeValues)
               .then(result=>{
                 res.send(locationData);
               })
