@@ -5,8 +5,8 @@ const cors = require('cors');
 const superagent = require('superagent');
 
 const pg=require('pg');
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL, ssl: process.env.DEV_MODE ? false : { rejectUnauthorized: false } });
-
+//const client = new pg.Client({ connectionString: process.env.DATABASE_URL, ssl: process.env.DEV_MODE ? false : { rejectUnauthorized: false } });
+const client = new pg.Client( { connectionString: process.env.DATABASE_URL, ssl: process.env.LOCALLY ? false : {rejectUnauthorized: false}} );
 //const clinet= new pg.Client(process.env.DATABASE_URL);
 const server=express();
 const PORT=process.env.PORT || 3000;
@@ -181,17 +181,23 @@ function moviesHandler(req,res){
 
 
 function yelpHandelr(req, res) {
-   let cityName = req.query.search_query;
-    let page = req.query.page;
-     let key = process.env.YELP_API_KEY;  
-     const resultPerPAge = 5; 
-      const start = ((page - 1) * resultPerPAge + 1); 
-       let yelpURL = `https://api.yelp.com/v3/businesses/search?location=${cityName}&limit=${resultPerPAge}&offset=${start}`;  superagent.get(yelpURL)    .set('Authorization', `Bearer ${key}`)    .then(data => {
+  let cityName = req.query.search_query;
+  let page = req.query.page;
+  let key = process.env.YELP_API_KEY;
+  const resultPerPAge = 5;
+  const start = ((page - 1) * resultPerPAge + 1);
+  let yelpURL = `https://api.yelp.com/v3/businesses/search?location=${cityName}&limit=${resultPerPAge}&offset=${start}`;
+  superagent.get(yelpURL)
+    .set('Authorization', `Bearer ${key}`)
+    .then(data => {
       let yelpData = data.body.businesses;
       let yelpInfo = yelpData.map((item) => {
-        return new Yelp(item);      });
+        return new Yelp(item);});
       res.send(yelpInfo);
-    })    .catch(error => {      res.send(error);    });}
+    })
+    .catch(error => {
+      res.send(error);
+    });}
 
 
 
